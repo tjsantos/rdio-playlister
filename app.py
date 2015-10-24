@@ -1,7 +1,11 @@
-from flask import Flask, url_for, render_template, jsonify, session, request
+import os
+
+from flask import Flask, url_for, render_template, jsonify, session, request, \
+    redirect, flash
 from flask_oauthlib.client import OAuth
 from flask_sslify import SSLify
-import os
+from flask_wtf import Form
+from wtforms import SubmitField
 
 app = Flask(__name__)
 sslify = SSLify(app)
@@ -19,14 +23,39 @@ rdio = oauth.remote_app(
 )
 
 
-@app.route('/')
+class PlaylistForm(Form):
+    submit = SubmitField('Create Playlist')
+
+
+def create_playlist():
+    pass
+
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html')
+    form = PlaylistForm()
+    if form.validate_on_submit():
+        try:
+            create_playlist()
+        except:
+            # TODO add errors to form
+            flash('error creating playlist')
+        else:
+            flash('playlist created')
+            return redirect(url_for('index'))
+
+    return render_template('index.html', form=form)
 
 
 @app.route('/login')
 def login():
     return rdio.authorize(callback=url_for('oauth', _external=True))
+
+
+@app.route('/logout')
+def logout():
+    session.pop('rdio_token', None)
+    return redirect(url_for('index'))
 
 
 @app.route('/oauth')
@@ -49,6 +78,7 @@ def info():
         return 'response status {}'.format(response.status)
 
     return jsonify(response.data)
+
 
 @rdio.tokengetter
 def get_rdio_oauth_token():
