@@ -17,6 +17,7 @@
 {% endwith %}
 
 <a href="{{ url_for('login') }}">Login with Rdio</a>
+<a href="{{ url_for('logout') }}">Logout</a>
 <form method="post" action="">
     <p>Create playlist from your station</p>
     {% if form.errors %}
@@ -29,6 +30,9 @@
     </ul>
     {% endif %}
     {{ form.hidden_tag() }}
+    <div>
+        {{ form.track_count.label }}: {{ form.track_count() }}
+    </div>
     {{ form.submit }}
 </form>
 
